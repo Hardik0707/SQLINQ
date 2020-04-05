@@ -1,0 +1,5 @@
+2020-04-05 11:57:21,965 ERROR (<class 'TypeError'>, TypeError('must be str, not NoneType',), <traceback object at 0x7f72a42d6c48>)
+2020-04-05 11:58:52,346 ERROR <class 'Exception'>
+2020-04-05 12:00:34,704 ERROR (<class 'pyparsing.ParseException'>, Expected select (at char 0), (line:1, col:1), <traceback object at 0x7ff178a0cfc8>)
+2020-04-05 12:01:18,486 ERROR (<class 'pyparsing.ParseException'>, Expected select (at char 0), (line:1, col:1), <traceback object at 0x7f2f51f09e48>)
+2020-04-05 12:01:21,352 ERROR (<class 'pyparsing.ParseException'>, Expected select (at char 0), (line:1, col:1), <traceback object at 0x7f2f51283d48>)

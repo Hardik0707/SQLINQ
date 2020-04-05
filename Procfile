@@ -1,0 +1,1 @@
+web: gunicorn SQLINQ.wsgi --log-file -
