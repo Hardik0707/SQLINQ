@@ -20,9 +20,11 @@ WhereValue=''
 OrderByValue = ''
 GroupByValue = ''
 RangeVariableName = 'range'
+IsInnerJoin = False
 
 # Sign creator function
 def OperatorToSign(operator):
+  global IsInnerJoin
   Operators = {
     'eq':'==',
     'neq':'!=',
@@ -33,6 +35,8 @@ def OperatorToSign(operator):
     'and':'and',
     'or':'or'
   }
+  if IsInnerJoin == True and operator == 'eq':
+    return 'equals'
   return Operators[operator]
 
 
@@ -54,17 +58,45 @@ def SelectValueSet(select):
     SelectValue = SelectValue + '};'
   return SelectValue
 
-# From Function
+# From Function with join 
 def FromValueSet(fromVal):
-  count = 0
   FromValue = ''
-  global RangeVariableName
+  global RangeVariableName,IsInnerJoin
+  
+  #if only one table  
   if type(fromVal) is str:
     FromValue = 'from '+RangeVariableName+' in '+fromVal
+  
+  # if one table with alias name
+  elif type(fromVal) is dict:
+    FromValue = 'from ' + fromVal['name'] + ' in '+ fromVal['value']   
+
+  # if multiple table 
   elif type(fromVal) is list:
     for i in fromVal:
-      count = count + 1
-      FromValue = FromValue + '\n' + 'from '+ RangeVariableName + str(count) +' in '+ i 
+      if type(i) is str:
+        FromValue = FromValue + 'from '+ i +' in '+ i
+
+      elif type(i) is dict:
+
+        # Check inner join is present or not
+        if i.get('inner join') != None:     #present inner join
+          join = i['inner join']
+          on = i['on']
+
+          # Set INNER JOIN Present
+          IsInnerJoin=True
+          
+          if type(join) == str:
+            FromValue = FromValue + '\n' + 'join '+ join +' in '+ join + '\non ' + WhereClause(on)
+          else:
+            FromValue = FromValue + '\n' + 'join '+ join["name"]+' in '+ join["value"] + '\non ' + WhereClause(on)
+          
+          IsInnerJoin = False  
+        
+        else:
+          FromValue = FromValue + 'from '+ i["name"]+' in '+ i["value"]
+  
   return FromValue
 
 # Where Clause Function
@@ -82,7 +114,10 @@ def WhereClause(where_value):       #Parameter should be dict type
    if type(operand1) is dict:
      operand1 = '( '+WhereClause(operand1)
    elif type(operand1) is str:
-     operand1 = RangeVariableName+'.'+str(operand1)
+     if IsInnerJoin == True:
+       operand1 = str(operand1)
+     else:
+       operand1 = RangeVariableName+'.'+str(operand1)
 
    if type(operand2) is dict:
      operand2 = WhereClause(operand2) + ')'
@@ -164,6 +199,8 @@ def SQLINQConverter(values):
 
 def Convert(query):
     try:
+      # Replace single quote with double quotes 
+      query = query.replace("'","\"")
       parsed_query = parse(query)
       return SQLINQConverter(parsed_query)
     except:
